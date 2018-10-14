@@ -27,5 +27,5 @@ export default function sql(
     }
   }
   parts.push(strings[expressions.length])
-  return {bind, query: parts.join('')}
+  return {bind, query: parts.join('').trim().replace(/\s+/g, ' ')}
 }
