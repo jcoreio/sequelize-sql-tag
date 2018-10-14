@@ -8,9 +8,6 @@
 a template tag for [Sequelize](docs.sequelizejs.com) that quotes `Model`s' table
 names, attribute names, and puts other expressions into bind parameters
 
-(This is the one you want, https://github.com/ruimarinho/sequelize-sql-tag
-doesn't quote `Model`s' table names or attribute names for you)
-
 Using the table and attribute names from your Sequelize `Model`s is much more
 refactor-proof in raw queries than embedding raw identifiers.
 
