@@ -1,7 +1,7 @@
 {
-  "name": "es2015-library-skeleton",
+  "name": "@jcoreio/sequelize-sql-tag",
   "version": "0.0.0-development",
-  "description": "my personal ES2015 library project skeleton",
+  "description": "a template tag for Sequelize that quotes Models' table names, attribute names, and puts other expressions into bind parameters",
   "main": "index.js",
   "module": "es/index.js",
   "modules.root": "es",
@@ -44,17 +44,22 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jedwards1211/es2015-library-skeleton.git"
+    "url": "https://github.com/jcoreio/sequelize-sql-tag.git"
   },
   "keywords": [
-    "es2015"
+    "sequelize",
+    "tagged-template-literal",
+    "parameterized-query",
+    "parameterized-queries",
+    "sql",
+    "raw-sql"
   ],
   "author": "Andy Edwards",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jedwards1211/es2015-library-skeleton/issues"
+    "url": "https://github.com/jcoreio/sequelize-sql-tag/issues"
   },
-  "homepage": "https://github.com/jedwards1211/es2015-library-skeleton#readme",
+  "homepage": "https://github.com/jcoreio/sequelize-sql-tag#readme",
   "devDependencies": {
     "@commitlint/cli": "^6.0.2",
     "@commitlint/config-conventional": "^6.0.2",
@@ -88,8 +93,13 @@
     "istanbul": "^0.4.5",
     "mocha": "^4.1.0",
     "nyc": "^11.4.1",
+    "pg": "^7.5.0",
     "rimraf": "^2.6.0",
     "semantic-release": "^15.1.4",
+    "sequelize": "^4.39.0",
     "travis-deploy-once": "^4.3.1"
+  },
+  "peerDependencies": {
+    "sequelize": "^4.0.0"
   }
 }
