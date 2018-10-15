@@ -4,7 +4,7 @@ import Sequelize, {Model} from 'sequelize'
 
 const Literal = Object.getPrototypeOf(Sequelize.literal('foo')).constructor
 
-export default function sql(
+function sql(
   strings: $ReadOnlyArray<string>,
   ...expressions: $ReadOnlyArray<mixed>
 ): {bind: Array<any>, query: string} {
@@ -29,3 +29,5 @@ export default function sql(
   parts.push(strings[expressions.length])
   return {bind, query: parts.join('').trim().replace(/\s+/g, ' ')}
 }
+
+module.exports = sql
