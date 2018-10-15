@@ -23,7 +23,7 @@ Requires `sequelize@^4.0.0`.  Once v5 is released I'll check if it's still
 compatible.  Not making any effort to support versions < 4, but you're welcome
 to make a PR.
 
-## Example
+## Examples
 
 ```js
 const Sequelize = require('sequelize')
@@ -43,4 +43,41 @@ WHERE ${User.attributes.birthday} = ${new Date('2346-7-11')} AND
   ${User.attributes.active} = ${true}
   ${Sequelize.literal(lock ? 'FOR UPDATE' : '')}`).then(console.log);
 // => [ [ { name: 'Jimbob' } ], Statement { sql: 'SELECT "name" FROM "Users" WHERE "birthday" = $1 AND "active" = $2 FOR UPDATE' } ]
+```
+
+Sometimes custom subqueries within a Sequelize `where` clause can be useful.
+In this case, there is no way to use query parameters.  You can use
+`sql.escape` in this context to inline the escaped values rather than using
+query parameters:
+
+```js
+const {Op} = Sequelize
+
+const User = sequelize.define('User', {
+  name: {type: Sequelize.STRING},
+})
+const Organization = sequelize.define('Organization', {
+  name: {type: Sequelize.STRING},
+})
+const OrganizationMember = sequelize.define('OrganizationMember', {
+  userId: {type: Sequelize.INTEGER},
+  organizationId: {type: Sequelize.INTEGER},
+})
+User.belongsToMany(Organization, {through: OrganizationMember})
+Organization.belongsToMany(User, {through: OrganizationMember})
+
+async function getUsersInOrganization(organizationId, where = {}) {
+  return await User.findAll({
+    where: {
+      ...where,
+      // Using a sequelize include clause to do this kind of sucks tbh
+      id: {[Op.in]: Sequelize.literal(sql.escape`
+        SELECT ${OrganizationMember.attributes.userId}
+        FROM ${OrganizationMember}
+        WHERE ${OrganizationMember.attributes.organizationId} = ${organizationId}
+      `)}
+      // SELECT "userId" FROM "OrganizationMembers" WHERE "organizationId" = 2
+    },
+  })
+}
 ```
