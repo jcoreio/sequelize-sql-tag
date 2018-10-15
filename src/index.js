@@ -7,7 +7,7 @@ const Literal = Object.getPrototypeOf(Sequelize.literal('foo')).constructor
 function sql(
   strings: $ReadOnlyArray<string>,
   ...expressions: $ReadOnlyArray<mixed>
-): {bind: Array<any>, query: string} {
+): [string, {bind: Array<any>}] {
   const parts: Array<string> = []
   const bind: Array<any> = []
   for (let i = 0, length = expressions.length; i < length; i++) {
@@ -27,7 +27,7 @@ function sql(
     }
   }
   parts.push(strings[expressions.length])
-  return {bind, query: parts.join('').trim().replace(/\s+/g, ' ')}
+  return [parts.join('').trim().replace(/\s+/g, ' '), {bind}]
 }
 
 sql.escape = function escapeSql(

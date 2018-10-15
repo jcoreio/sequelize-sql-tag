@@ -38,7 +38,7 @@ const User = sequelize.define('User', {
 
 const lock = true
 
-sequelize.query(sql`SELECT ${User.attributes.name} FROM ${User}
+sequelize.query(...sql`SELECT ${User.attributes.name} FROM ${User}
 WHERE ${User.attributes.birthday} = ${new Date('2346-7-11')} AND
   ${User.attributes.active} = ${true}
   ${Sequelize.literal(lock ? 'FOR UPDATE' : '')}`).then(console.log);
@@ -81,3 +81,21 @@ async function getUsersInOrganization(organizationId, where = {}) {
   })
 }
 ```
+
+## API
+
+### `sql\`query\``
+
+Creates arguments for `sequelize.query`.
+
+#### Returns (`[string, {bind: Array<string>}]`)
+
+The `sql, options` arguments to pass to `sequelize.query`.
+
+### `sql.escape\`query\``
+
+Creates a raw SQL string with all expressions in the template escaped.
+
+#### Returns (`string`)
+
+The raw SQL.
