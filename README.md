@@ -27,7 +27,7 @@ to make a PR.
 
 ```js
 const Sequelize = require('sequelize')
-const sql = require('./dist/src/index.js')
+const sql = require('@jcoreio/sequelize-sql-tag')
 const sequelize = new Sequelize('test', 'test', 'test', { dialect: 'postgres', logging: false })
 
 const User = sequelize.define('User', {
