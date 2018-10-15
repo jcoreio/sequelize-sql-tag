@@ -84,7 +84,7 @@ async function getUsersInOrganization(organizationId, where = {}) {
 
 ## API
 
-### `sql\`query\``
+### `` sql`query` ``
 
 Creates arguments for `sequelize.query`.
 
@@ -92,7 +92,7 @@ Creates arguments for `sequelize.query`.
 
 The `sql, options` arguments to pass to `sequelize.query`.
 
-### `sql.escape\`query\``
+### `` sql.escape`query` ``
 
 Creates a raw SQL string with all expressions in the template escaped.
 
