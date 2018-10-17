@@ -2,7 +2,7 @@
 
 import Sequelize, {Model} from 'sequelize'
 
-type QueryGenerator = $Call<<T>({QueryGenerator: T}) => T, Model>
+type QueryGenerator = $Call<<T>({QueryGenerator: T}) => T, Model<any>>
 
 const Literal = Object.getPrototypeOf(Sequelize.literal('foo')).constructor
 const sqlOutput = Symbol('sqlOutput')
