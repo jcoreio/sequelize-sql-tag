@@ -11,19 +11,19 @@ names, attribute names, and puts other expressions into bind parameters
 Using the table and attribute names from your Sequelize `Model`s is much more
 refactor-proof in raw queries than embedding raw identifiers.
 
-## Installation
+# Installation
 
 ```sh
 npm install --save @jcoreio/sequelize-sql-tag
 ```
 
-## Compatibility
+# Compatibility
 
 Requires `sequelize@^4.0.0`.  Once v5 is released I'll check if it's still
 compatible.  Not making any effort to support versions < 4, but you're welcome
 to make a PR.
 
-## Examples
+# Examples
 
 ```js
 const Sequelize = require('sequelize')
@@ -41,7 +41,7 @@ const lock = true
 sequelize.query(...sql`SELECT ${User.attributes.name} FROM ${User}
 WHERE ${User.attributes.birthday} = ${new Date('2346-7-11')} AND
   ${User.attributes.active} = ${true}
-  ${Sequelize.literal(lock ? 'FOR UPDATE' : '')}`).then(console.log);
+  ${lock ? sql`FOR UPDATE` : sql``}then(console.log);
 // => [ [ { name: 'Jimbob' } ], Statement { sql: 'SELECT "name" FROM "Users" WHERE "birthday" = $1 AND "active" = $2 FOR UPDATE' } ]
 ```
 
@@ -82,20 +82,56 @@ async function getUsersInOrganization(organizationId, where = {}) {
 }
 ```
 
-## API
+# API
 
-### `` sql`query` ``
+## `` sql`query` ``
 
 Creates arguments for `sequelize.query`.
 
-#### Returns (`[string, {bind: Array<string>}]`)
+### Expressions you can embed in the template
+
+#### Sequelize `Model` class
+Will be interpolated to the model's `tableName`.
+
+#### Model attribute (e.g. `User.attributes.id`)
+Will be interpolated to the column name for the attribute
+
+#### `` sql`nested` ``
+Good for conditionally including a SQL clause (see examples above)
+
+#### `Sequelize.literal(...)`
+Text will be included as-is
+
+#### All other values
+Will be added to bind parameters.
+
+### Returns (`[string, {bind: Array<string>}]`)
 
 The `sql, options` arguments to pass to `sequelize.query`.
 
-### `` sql.escape`query` ``
+## `` sql.escape`query` ``
 
 Creates a raw SQL string with all expressions in the template escaped.
 
-#### Returns (`string`)
+### Expressions you can embed in the template
+
+#### Sequelize `Model` class
+Will be interpolated to the model's `tableName`.
+
+#### Model attribute (e.g. `User.attributes.id`)
+Will be interpolated to the column name for the attribute
+
+#### `` sql`nested` ``
+Good for conditionally including a SQL clause (see examples above)
+
+#### `Sequelize.literal(...)`
+Text will be included as-is
+
+#### All other values
+Will be escaped with `QueryGenerator.escape(...)`.  If none of the expressions
+is a Sequelize `Model` class or attribute (or nested `` sql`query` `` containing
+such) then an error will be thrown.
+
+### Returns (`string`)
 
 The raw SQL.
