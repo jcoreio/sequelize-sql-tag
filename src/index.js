@@ -1,6 +1,8 @@
 // @flow
 
-import Sequelize, {Model, type QueryGenerator} from 'sequelize'
+import Sequelize, {Model} from 'sequelize'
+
+type QueryGenerator = $Call<<T>({QueryGenerator: T}) => T, Model>
 
 const Literal = Object.getPrototypeOf(Sequelize.literal('foo')).constructor
 const sqlOutput = Symbol('sqlOutput')
