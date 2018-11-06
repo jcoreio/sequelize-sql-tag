@@ -1,6 +1,6 @@
 // @flow
 
-import Sequelize, {Model} from 'sequelize'
+import Sequelize, {Model, type QueryOptions} from 'sequelize'
 
 type QueryGenerator = $Call<<T>({QueryGenerator: T}) => T, Class<Model<any>>>
 
@@ -11,7 +11,7 @@ const queryGeneratorSymbol = Symbol('queryGenerator')
 function sql(
   strings: $ReadOnlyArray<string>,
   ...expressions: $ReadOnlyArray<mixed>
-): [string, {bind: Array<any>}] {
+): [string, QueryOptions] {
   const parts: Array<string> = []
   const bind: Array<any> = []
   let queryGenerator
