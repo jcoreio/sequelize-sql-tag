@@ -102,6 +102,9 @@ Good for conditionally including a SQL clause (see examples above)
 #### `Sequelize.literal(...)`
 Text will be included as-is
 
+#### Arrays of `values` tagged template literals
+Will be included as-is joined by commas.
+
 #### All other values
 Will be added to bind parameters.
 
@@ -127,11 +130,68 @@ Good for conditionally including a SQL clause (see examples above)
 #### `Sequelize.literal(...)`
 Text will be included as-is
 
+#### Arrays of `values` tagged template literals
+Will be included as-is joined by commas.
+
 #### All other values
 Will be escaped with `QueryGenerator.escape(...)`.  If none of the expressions
-is a Sequelize `Model` class or attribute (or nested `` sql`query` `` containing
-such) then an error will be thrown.
+is a Sequelize `Model` class, attribute, `Sequelize` instance, or nested `` sql`query` `` containing
+such, then an error will be thrown.
 
 ### Returns (`string`)
 
 The raw SQL.
+
+## `sql.with(sequelize)`
+
+Returns an interface using the `QueryGenerator` from the given `Sequelize` instance.
+The returned interface has the following tagged template literals:
+
+#### `` escape`query` ``
+
+Just like `sql.escape`, but doesn't require any of the expressions to be a Sequelize `Model` class
+or attribute.
+
+#### `` values`sql` ``
+
+Used for building `VALUES` lists.  Only works inside an array expression.
+The items will be included as-is joined by commas.  For example:
+
+```js
+const users = [
+  {name: 'Jim', birthday: 'Jan 1 2020'},
+  {name: 'Bob', birthday: 'Jan 2 1986'},
+]
+const {escape, values} = sql.with(sequelize)
+escape`
+INSERT INTO ${User}
+  ${User.attributes.name}, ${User.attributes.birthday}
+  VALUES ${users.map(({name, birthday}) => values`(${name}, ${birthday})`)}
+`
+// returns `INSERT INTO "Users" "name", "birthday" VALUES ('Jim', 'Jan 1 2020'), ('Bob', 'Jan 2 1986')`
+```
+
+#### `` literal`sql` ``
+
+Like `sql.escape`, but wraps the escaped SQL in `Sequelize.literal`.
+
+#### `` query`sql` ``
+
+Returns a function that executes the query.  Example:
+
+```js
+const Sequelize = require('sequelize')
+const sql = require('@jcoreio/sequelize-sql-tag')
+const sequelize = new Sequelize('test', 'test', 'test', { dialect: 'postgres', logging: false })
+
+const User = sequelize.define('User', {
+  name: {type: Sequelize.STRING},
+})
+
+async function insertUser(user) {
+  const {query} = sql.with(sequelize)
+  await query`
+    INSERT INTO ${User} ${User.attributes.name} VALUES (${user.name});
+  `({transaction})
+}
+```
