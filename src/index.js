@@ -1,8 +1,8 @@
 // @flow
 
-import Sequelize, {Model, type QueryOptions} from 'sequelize'
+import Sequelize, { Model, type QueryOptions } from 'sequelize'
 
-type QueryGenerator = $Call<<T>({QueryGenerator: T}) => T, Class<Model<any>>>
+type QueryGenerator = $Call<<T>({ QueryGenerator: T }) => T, Class<Model<any>>>
 
 const Literal = Object.getPrototypeOf(Sequelize.literal('foo')).constructor
 const sqlOutput = Symbol('sqlOutput')
@@ -39,18 +39,25 @@ function sql(
       parts.push((expression: any).map(row => row.value).join(', '))
     } else if (expression instanceof Object && expression[sqlOutput]) {
       const [query, options] = expression
-      parts.push(query.replace(/(\$+)(\d+)/g, (match: string, dollars: string, index: string) =>
-        dollars.length % 2 === 0
-          ? match
-          : `${dollars}${parseInt(index) + bind.length}`
-      ))
+      parts.push(
+        query.replace(
+          /(\$+)(\d+)/g,
+          (match: string, dollars: string, index: string) =>
+            dollars.length % 2 === 0
+              ? match
+              : `${dollars}${parseInt(index) + bind.length}`
+        )
+      )
       bind.push(...options.bind)
     } else if (expression && expression.prototype instanceof Model) {
-      const {QueryGenerator, tableName} = (expression: any)
+      const { QueryGenerator, tableName } = (expression: any)
       queryGenerator = QueryGenerator
       parts.push(QueryGenerator.quoteTable(tableName))
     } else if (expression && expression.type instanceof Sequelize.ABSTRACT) {
-      const {field, Model: {QueryGenerator}} = (expression: any)
+      const {
+        field,
+        Model: { QueryGenerator },
+      } = (expression: any)
       queryGenerator = QueryGenerator
       parts.push(QueryGenerator.quoteIdentifier(field))
     } else {
@@ -59,14 +66,22 @@ function sql(
     }
   }
   parts.push(strings[expressions.length])
-  const result = [parts.join('').trim().replace(/\s+/g, ' '), {bind}];
-  (result: any)[sqlOutput] = true
+  const result = [
+    parts
+      .join('')
+      .trim()
+      .replace(/\s+/g, ' '),
+    { bind },
+  ]
+  ;(result: any)[sqlOutput] = true
   if (queryGenerator) (result: any)[queryGeneratorSymbol] = queryGenerator
   return result
 }
 
-function findQueryGenerator(expressions: $ReadOnlyArray<mixed>): QueryGenerator {
-  for (let i = 0, {length} = expressions; i < length; i++) {
+function findQueryGenerator(
+  expressions: $ReadOnlyArray<mixed>
+): QueryGenerator {
+  for (let i = 0, { length } = expressions; i < length; i++) {
     const expression = expressions[i]
     if (expression instanceof Object && expression[queryGeneratorSymbol]) {
       return expression[queryGeneratorSymbol]
@@ -78,7 +93,9 @@ function findQueryGenerator(expressions: $ReadOnlyArray<mixed>): QueryGenerator 
       return expression.getQueryInterface().QueryGenerator
     }
   }
-  throw new Error(`at least one of the expressions must be a sequelize Model, attribute, or Sequelize instance`)
+  throw new Error(
+    `at least one of the expressions must be a sequelize Model, attribute, or Sequelize instance`
+  )
 }
 
 const once = <F: Function>(fn: F): F => {
@@ -87,18 +104,16 @@ const once = <F: Function>(fn: F): F => {
   return ((): any => {
     if (called) return result
     called = true
-    return result = fn()
+    return (result = fn())
   }: any)
 }
 
-const escapeSql = (
-  queryGenerator: () => QueryGenerator,
-) => (
+const escapeSql = (queryGenerator: () => QueryGenerator) => (
   strings: $ReadOnlyArray<string>,
   ...expressions: $ReadOnlyArray<mixed>
 ): string => {
   const parts: Array<string> = []
-  for (let i = 0, {length} = expressions; i < length; i++) {
+  for (let i = 0, { length } = expressions; i < length; i++) {
     parts.push(strings[i])
     const expression = expressions[i]
     if (expression instanceof Literal) {
@@ -107,16 +122,20 @@ const escapeSql = (
       parts.push((expression: any).map(row => row.value).join(', '))
     } else if (expression instanceof Object && expression[sqlOutput]) {
       const [query, options] = expression
-      parts.push(query.replace(/(\$+)(\d+)/g, (match: string, dollars: string, index: string) =>
-        dollars.length % 2 === 0
-          ? match
-          : queryGenerator().escape(options.bind[parseInt(index) - 1])
-      ))
+      parts.push(
+        query.replace(
+          /(\$+)(\d+)/g,
+          (match: string, dollars: string, index: string) =>
+            dollars.length % 2 === 0
+              ? match
+              : queryGenerator().escape(options.bind[parseInt(index) - 1])
+        )
+      )
     } else if (expression && expression.prototype instanceof Model) {
-      const {tableName} = (expression: any)
+      const { tableName } = (expression: any)
       parts.push(queryGenerator().quoteTable(tableName))
     } else if (expression && expression.type instanceof Sequelize.ABSTRACT) {
-      const {field} = (expression: any)
+      const { field } = (expression: any)
       parts.push(queryGenerator().quoteIdentifier(field))
     } else {
       parts.push(queryGenerator().escape(expression))
@@ -129,38 +148,59 @@ const escapeSql = (
 sql.escape = (
   strings: $ReadOnlyArray<string>,
   ...expressions: $ReadOnlyArray<mixed>
-): string => escapeSql(once(() => findQueryGenerator(expressions)))(strings, ...expressions)
+): string =>
+  escapeSql(once(() => findQueryGenerator(expressions)))(
+    strings,
+    ...expressions
+  )
 
 sql.literal = (
   strings: $ReadOnlyArray<string>,
   ...expressions: $ReadOnlyArray<mixed>
-): Literal => Sequelize.literal(escapeSql(once(() => findQueryGenerator(expressions)))(strings, ...expressions))
+): Literal =>
+  Sequelize.literal(
+    escapeSql(once(() => findQueryGenerator(expressions)))(
+      strings,
+      ...expressions
+    )
+  )
 
-sql.with = (
-  sequelize: Sequelize
-) => ({
+sql.with = (sequelize: Sequelize) => ({
   escape: (
     strings: $ReadOnlyArray<string>,
     ...expressions: $ReadOnlyArray<mixed>
-  ): string => escapeSql(() => sequelize.getQueryInterface().QueryGenerator)(strings, ...expressions),
+  ): string =>
+    escapeSql(() => sequelize.getQueryInterface().QueryGenerator)(
+      strings,
+      ...expressions
+    ),
   values: (
     strings: $ReadOnlyArray<string>,
     ...expressions: $ReadOnlyArray<mixed>
-  ): ValuesRow => new ValuesRow(escapeSql(() => sequelize.getQueryInterface().QueryGenerator)(strings, ...expressions)),
+  ): ValuesRow =>
+    new ValuesRow(
+      escapeSql(() => sequelize.getQueryInterface().QueryGenerator)(
+        strings,
+        ...expressions
+      )
+    ),
   literal: (
     strings: $ReadOnlyArray<string>,
     ...expressions: $ReadOnlyArray<mixed>
-  ): Literal => Sequelize.literal(escapeSql(() => sequelize.getQueryInterface().QueryGenerator)(strings, ...expressions)),
+  ): Literal =>
+    Sequelize.literal(
+      escapeSql(() => sequelize.getQueryInterface().QueryGenerator)(
+        strings,
+        ...expressions
+      )
+    ),
   query: (
     strings: $ReadOnlyArray<string>,
     ...expressions: $ReadOnlyArray<mixed>
   ) => (options: QueryOptions = {}): Promise<any> => {
     const [query, baseOptions] = sql(strings, ...expressions)
-    return sequelize.query(
-      query,
-      {...baseOptions, ...options}
-    )
-  }
+    return sequelize.query(query, { ...baseOptions, ...options })
+  },
 })
 
 module.exports = sql
