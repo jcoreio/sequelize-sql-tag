@@ -34,7 +34,7 @@ function sql(
     parts.push(strings[i])
     const expression = expressions[i]
     if (expression instanceof Literal) {
-      parts.push(expression.val)
+      parts.push((expression: any).val)
     } else if (isValuesArray(expression)) {
       parts.push((expression: any).map(row => row.value).join(', '))
     } else if (Array.isArray(expression) && (expression: any)[sqlOutput]) {
@@ -48,7 +48,7 @@ function sql(
               : `${dollars}${parseInt(index) + bind.length}`
         )
       )
-      bind.push(...options.bind)
+      if (Array.isArray(options.bind)) bind.push(...options.bind)
     } else if (expression && expression.prototype instanceof Model) {
       const { QueryGenerator, tableName } = (expression: any)
       queryGenerator = QueryGenerator
@@ -120,18 +120,22 @@ const escapeSql = (queryGenerator: () => QueryGenerator) => (
     parts.push(strings[i])
     const expression = expressions[i]
     if (expression instanceof Literal) {
-      parts.push(expression.val)
+      parts.push((expression: any).val)
     } else if (isValuesArray(expression)) {
       parts.push((expression: any).map(row => row.value).join(', '))
     } else if (Array.isArray(expression) && (expression: any)[sqlOutput]) {
       const [query, options] = ((expression: any): [string, QueryOptions])
+      const { bind } = options
+      if (!Array.isArray(bind)) {
+        throw new Error('expected options.bind to be an array')
+      }
       parts.push(
         query.replace(
           /(\$+)(\d+)/g,
           (match: string, dollars: string, index: string) =>
             dollars.length % 2 === 0
               ? match
-              : queryGenerator().escape(options.bind[parseInt(index) - 1])
+              : queryGenerator().escape(bind[parseInt(index) - 1])
         )
       )
     } else if (expression && expression.prototype instanceof Model) {
