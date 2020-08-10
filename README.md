@@ -76,9 +76,7 @@ async function getUsersInOrganization(organizationId, where = {}) {
         [Op.in]: Sequelize.literal(sql.escape`
         SELECT ${OrganizationMember.attributes.userId}
         FROM ${OrganizationMember}
-        WHERE ${
-          OrganizationMember.attributes.organizationId
-        } = ${organizationId}
+        WHERE ${OrganizationMember.attributes.organizationId} = ${organizationId}
       `),
       },
       // SELECT "userId" FROM "OrganizationMembers" WHERE "organizationId" = 2
