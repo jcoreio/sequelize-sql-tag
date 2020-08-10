@@ -37,8 +37,8 @@ function sql(
       parts.push(expression.val)
     } else if (isValuesArray(expression)) {
       parts.push((expression: any).map(row => row.value).join(', '))
-    } else if (expression instanceof Object && expression[sqlOutput]) {
-      const [query, options] = expression
+    } else if (Array.isArray(expression) && (expression: any)[sqlOutput]) {
+      const [query, options] = ((expression: any): [string, QueryOptions])
       parts.push(
         query.replace(
           /(\$+)(\d+)/g,
@@ -83,8 +83,11 @@ function findQueryGenerator(
 ): QueryGenerator {
   for (let i = 0, { length } = expressions; i < length; i++) {
     const expression = expressions[i]
-    if (expression instanceof Object && expression[queryGeneratorSymbol]) {
-      return expression[queryGeneratorSymbol]
+    if (
+      expression instanceof Object &&
+      (expression: any)[queryGeneratorSymbol]
+    ) {
+      return (expression: any)[queryGeneratorSymbol]
     } else if (expression && expression.prototype instanceof Model) {
       return (expression: any).QueryGenerator
     } else if (expression && expression.type instanceof Sequelize.ABSTRACT) {
@@ -120,8 +123,8 @@ const escapeSql = (queryGenerator: () => QueryGenerator) => (
       parts.push(expression.val)
     } else if (isValuesArray(expression)) {
       parts.push((expression: any).map(row => row.value).join(', '))
-    } else if (expression instanceof Object && expression[sqlOutput]) {
-      const [query, options] = expression
+    } else if (Array.isArray(expression) && (expression: any)[sqlOutput]) {
+      const [query, options] = ((expression: any): [string, QueryOptions])
       parts.push(
         query.replace(
           /(\$+)(\d+)/g,
