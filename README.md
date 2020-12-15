@@ -39,9 +39,9 @@ const User = sequelize.define('User', {
 
 const lock = true
 
-sequelize.query(...sql`SELECT ${User.attributes.name} FROM ${User}
-WHERE ${User.attributes.birthday} = ${new Date('2346-7-11')} AND
-  ${User.attributes.active} = ${true}
+sequelize.query(...sql`SELECT ${User.rawAttributes.name} FROM ${User}
+WHERE ${User.rawAttributes.birthday} = ${new Date('2346-7-11')} AND
+  ${User.rawAttributes.active} = ${true}
   ${lock ? sql`FOR UPDATE` : sql``}then(console.log);
 // => [ [ { name: 'Jimbob' } ], Statement { sql: 'SELECT "name" FROM "Users" WHERE "birthday" = $1 AND "active" = $2 FOR UPDATE' } ]
 ```
@@ -74,9 +74,9 @@ async function getUsersInOrganization(organizationId, where = {}) {
       // Using a sequelize include clause to do this kind of sucks tbh
       id: {
         [Op.in]: Sequelize.literal(sql.escape`
-        SELECT ${OrganizationMember.attributes.userId}
+        SELECT ${OrganizationMember.rawAttributes.userId}
         FROM ${OrganizationMember}
-        WHERE ${OrganizationMember.attributes.organizationId} = ${organizationId}
+        WHERE ${OrganizationMember.rawAttributes.organizationId} = ${organizationId}
       `),
       },
       // SELECT "userId" FROM "OrganizationMembers" WHERE "organizationId" = 2
@@ -97,7 +97,7 @@ Creates arguments for `sequelize.query`.
 
 Will be interpolated to the model's `tableName`.
 
-#### Model attribute (e.g. `User.attributes.id`)
+#### Model attribute (e.g. `User.rawAttributes.id`)
 
 Will be interpolated to the column name for the attribute
 
@@ -131,7 +131,7 @@ Creates a raw SQL string with all expressions in the template escaped.
 
 Will be interpolated to the model's `tableName`.
 
-#### Model attribute (e.g. `User.attributes.id`)
+#### Model attribute (e.g. `User.rawAttributes.id`)
 
 Will be interpolated to the column name for the attribute
 
@@ -180,7 +180,7 @@ const users = [
 const { escape, values } = sql.with(sequelize)
 escape`
 INSERT INTO ${User}
-  ${User.attributes.name}, ${User.attributes.birthday}
+  ${User.rawAttributes.name}, ${User.rawAttributes.birthday}
   VALUES ${users.map(({ name, birthday }) => values`(${name}, ${birthday})`)}
 `
 // returns `INSERT INTO "Users" "name", "birthday" VALUES ('Jim', 'Jan 1 2020'), ('Bob', 'Jan 2 1986')`
@@ -209,7 +209,7 @@ const User = sequelize.define('User', {
 async function insertUser(user) {
   const { query } = sql.with(sequelize)
   await query`
-    INSERT INTO ${User} ${User.attributes.name} VALUES (${user.name});
+    INSERT INTO ${User} ${User.rawAttributes.name} VALUES (${user.name});
   `({ transaction })
 }
 ```

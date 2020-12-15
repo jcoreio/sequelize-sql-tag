@@ -15,6 +15,13 @@ class ValuesRow {
   }
 }
 
+function getQueryGeneratorCompat(value: any): QueryGenerator {
+  const { queryGenerator, QueryGenerator } = value
+  if (queryGenerator) return queryGenerator
+  if (QueryGenerator) return QueryGenerator
+  throw new Error(`failed to get queryGenerator on ${value}`)
+}
+
 function isValuesArray(expression: any): boolean {
   if (!Array.isArray(expression)) return false
   for (let i = 0; i < expression.length; i++) {
@@ -50,16 +57,13 @@ function sql(
       )
       if (Array.isArray(options.bind)) bind.push(...options.bind)
     } else if (expression && expression.prototype instanceof Model) {
-      const { QueryGenerator, tableName } = (expression: any)
-      queryGenerator = QueryGenerator
-      parts.push(QueryGenerator.quoteTable(tableName))
+      const { tableName } = (expression: any)
+      queryGenerator = getQueryGeneratorCompat(expression)
+      parts.push(queryGenerator.quoteTable(tableName))
     } else if (expression && expression.type instanceof Sequelize.ABSTRACT) {
-      const {
-        field,
-        Model: { QueryGenerator },
-      } = (expression: any)
-      queryGenerator = QueryGenerator
-      parts.push(QueryGenerator.quoteIdentifier(field))
+      const { field, Model } = (expression: any)
+      queryGenerator = getQueryGeneratorCompat(Model)
+      parts.push(queryGenerator.quoteIdentifier(field))
     } else {
       bind.push(expression)
       parts.push(`$${bind.length}`)
@@ -89,11 +93,11 @@ function findQueryGenerator(
     ) {
       return (expression: any)[queryGeneratorSymbol]
     } else if (expression && expression.prototype instanceof Model) {
-      return (expression: any).QueryGenerator
+      return getQueryGeneratorCompat(expression)
     } else if (expression && expression.type instanceof Sequelize.ABSTRACT) {
-      return (expression: any).Model.QueryGenerator
+      return getQueryGeneratorCompat((expression: any).Model)
     } else if (expression instanceof Sequelize) {
-      return expression.getQueryInterface().QueryGenerator
+      return getQueryGeneratorCompat(expression.getQueryInterface())
     }
   }
   throw new Error(
@@ -177,7 +181,7 @@ sql.with = (sequelize: Sequelize) => ({
     strings: $ReadOnlyArray<string>,
     ...expressions: $ReadOnlyArray<mixed>
   ): string =>
-    escapeSql(() => sequelize.getQueryInterface().QueryGenerator)(
+    escapeSql(() => getQueryGeneratorCompat(sequelize.getQueryInterface()))(
       strings,
       ...expressions
     ),
@@ -186,7 +190,7 @@ sql.with = (sequelize: Sequelize) => ({
     ...expressions: $ReadOnlyArray<mixed>
   ): ValuesRow =>
     new ValuesRow(
-      escapeSql(() => sequelize.getQueryInterface().QueryGenerator)(
+      escapeSql(() => getQueryGeneratorCompat(sequelize.getQueryInterface()))(
         strings,
         ...expressions
       )
@@ -196,7 +200,7 @@ sql.with = (sequelize: Sequelize) => ({
     ...expressions: $ReadOnlyArray<mixed>
   ): Literal =>
     Sequelize.literal(
-      escapeSql(() => sequelize.getQueryInterface().QueryGenerator)(
+      escapeSql(() => getQueryGeneratorCompat(sequelize.getQueryInterface()))(
         strings,
         ...expressions
       )

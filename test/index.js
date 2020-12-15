@@ -18,10 +18,10 @@ describe(`sql`, function() {
 
   it(`works`, function() {
     expect(sql`
-SELECT ${User.attributes.name} ${Sequelize.literal('FROM')} ${User}
-WHERE ${User.attributes.birthday} = ${new Date('2346-7-11')} AND
-  ${sql`${User.attributes.name} LIKE ${'a%'} AND`}${sql``}
-  ${User.attributes.id} = ${1}
+SELECT ${User.rawAttributes.name} ${Sequelize.literal('FROM')} ${User}
+WHERE ${User.rawAttributes.birthday} = ${new Date('2346-7-11')} AND
+  ${sql`${User.rawAttributes.name} LIKE ${'a%'} AND`}${sql``}
+  ${User.rawAttributes.id} = ${1}
     `).to.deep.equal([
       `SELECT "name" FROM "Users" WHERE "birthday" = $1 AND "name" LIKE $2 AND "id" = $3`,
       {
@@ -48,7 +48,7 @@ WHERE ${User.attributes.birthday} = ${new Date('2346-7-11')} AND
     ]
     expect(sql`
     INSERT INTO ${User}
-      ${User.attributes.name}, ${User.attributes.birthday}
+      ${User.rawAttributes.name}, ${User.rawAttributes.birthday}
       VALUES ${users.map(
         ({ name, birthday }) => values`(${name}, ${birthday})`
       )}
@@ -71,10 +71,10 @@ describe(`sql.escape`, function() {
     })
 
     expect(sql.escape`
-SELECT ${User.attributes.id} ${Sequelize.literal('FROM')} ${User}
-WHERE ${User.attributes.name} LIKE ${'and%'} AND
-  ${sql`${User.attributes.name} LIKE ${'a%'} AND`}${sql``}
-  ${User.attributes.id} = ${1}
+SELECT ${User.rawAttributes.id} ${Sequelize.literal('FROM')} ${User}
+WHERE ${User.rawAttributes.name} LIKE ${'and%'} AND
+  ${sql`${User.rawAttributes.name} LIKE ${'a%'} AND`}${sql``}
+  ${User.rawAttributes.id} = ${1}
     `).to.deep.equal(`SELECT "id" FROM "Users"
 WHERE "name" LIKE 'and%' AND
   "name" LIKE 'a%' AND
