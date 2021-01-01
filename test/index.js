@@ -6,7 +6,7 @@ import { expect } from 'chai'
 
 import sql from '../src'
 
-describe(`sql`, function() {
+describe(`sql`, function () {
   const sequelize = new Sequelize('test', 'test', 'test', {
     dialect: 'postgres',
   })
@@ -16,7 +16,7 @@ describe(`sql`, function() {
     birthday: { type: Sequelize.DATE },
   })
 
-  it(`works`, function() {
+  it(`works`, function () {
     expect(sql`
 SELECT ${User.rawAttributes.name} ${Sequelize.literal('FROM')} ${User}
 WHERE ${User.rawAttributes.birthday} = ${new Date('2346-7-11')} AND
@@ -29,18 +29,18 @@ WHERE ${User.rawAttributes.birthday} = ${new Date('2346-7-11')} AND
       },
     ])
   })
-  it(`handles escaped $ in nested templates properly`, function() {
+  it(`handles escaped $ in nested templates properly`, function () {
     expect(sql`SELECT ${sql`'$$1'`}`).to.deep.equal([
       `SELECT '$$1'`,
       { bind: [] },
     ])
   })
-  it(`works with nested sql.literal`, function() {
+  it(`works with nested sql.literal`, function () {
     expect(
       sql`SELECT ${sql.with(sequelize).literal`${'foo'}`} FROM ${User}`
     ).to.deep.equal([`SELECT 'foo' FROM "Users"`, { bind: [] }])
   })
-  it(`works with nested .values`, function() {
+  it(`works with nested .values`, function () {
     const { values } = sql.with(sequelize)
     const users = [
       { name: 'Jim', birthday: 'Jan 1 2020' },
@@ -59,8 +59,8 @@ WHERE ${User.rawAttributes.birthday} = ${new Date('2346-7-11')} AND
   })
 })
 
-describe(`sql.escape`, function() {
-  it(`works`, function() {
+describe(`sql.escape`, function () {
+  it(`works`, function () {
     const sequelize = new Sequelize('test', 'test', 'test', {
       dialect: 'postgres',
     })
@@ -80,13 +80,13 @@ WHERE "name" LIKE 'and%' AND
   "name" LIKE 'a%' AND
   "id" = 1`)
   })
-  it(`throws if it can't get a QueryGenerator`, function() {
+  it(`throws if it can't get a QueryGenerator`, function () {
     expect(() => sql.escape`SELECT ${1} + ${2};`).to.throw(
       Error,
       'at least one of the expressions must be a sequelize Model, attribute, or Sequelize instance'
     )
   })
-  it(`can get QueryGenerator from Sequelize Model class`, function() {
+  it(`can get QueryGenerator from Sequelize Model class`, function () {
     const sequelize = new Sequelize('test', 'test', 'test', {
       dialect: 'postgres',
     })
@@ -100,10 +100,10 @@ WHERE "name" LIKE 'and%' AND
       `SELECT 'foo' FROM "Users"`
     )
   })
-  it(`handles escaped $ in nested templates properly`, function() {
+  it(`handles escaped $ in nested templates properly`, function () {
     expect(sql.escape`SELECT ${sql`'$$1'`}`).to.deep.equal(`SELECT '$$1'`)
   })
-  it(`can get QueryGenerator from nested sql template`, async function(): Promise<void> {
+  it(`can get QueryGenerator from nested sql template`, async function (): Promise<void> {
     const sequelize = new Sequelize('test', 'test', 'test', {
       dialect: 'postgres',
     })
@@ -117,18 +117,18 @@ WHERE "name" LIKE 'and%' AND
       `SELECT 'foo' FROM "Users"`
     )
   })
-  describe(`.with`, function() {
+  describe(`.with`, function () {
     const sequelize = new Sequelize('test', 'test', 'test', {
       dialect: 'postgres',
     })
 
-    describe(`.escape`, function() {
-      it(`works`, function() {
+    describe(`.escape`, function () {
+      it(`works`, function () {
         expect(
           sql.with(sequelize).escape`SELECT LOWER(${'foo'});`
         ).to.deep.equal(`SELECT LOWER('foo');`)
       })
-      it(`works in conjunction with .values`, function() {
+      it(`works in conjunction with .values`, function () {
         const items = [
           { foo: 1, bar: { hello: 'world' } },
           { foo: 3, bar: 'baz' },
@@ -143,8 +143,8 @@ WHERE "name" LIKE 'and%' AND
         )
       })
     })
-    describe(`.query`, function() {
-      it(`works`, function() {
+    describe(`.query`, function () {
+      it(`works`, function () {
         const calls = []
         const _sequelize: any = {
           query: (...args: any): any => {

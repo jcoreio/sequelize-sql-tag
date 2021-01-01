@@ -4,6 +4,8 @@ import Sequelize, { Model, type QueryOptions } from 'sequelize'
 
 type QueryGenerator = $Call<<T>({ QueryGenerator: T }) => T, Class<Model<any>>>
 
+type LiteralInstance = $Call<typeof Sequelize.literal, 'foo'>
+
 const Literal = Object.getPrototypeOf(Sequelize.literal('foo')).constructor
 const sqlOutput = Symbol('sqlOutput')
 const queryGeneratorSymbol = Symbol('queryGenerator')
@@ -43,7 +45,7 @@ function sql(
     if (expression instanceof Literal) {
       parts.push((expression: any).val)
     } else if (isValuesArray(expression)) {
-      parts.push((expression: any).map(row => row.value).join(', '))
+      parts.push((expression: any).map((row) => row.value).join(', '))
     } else if (Array.isArray(expression) && (expression: any)[sqlOutput]) {
       const [query, options] = ((expression: any): [string, QueryOptions])
       parts.push(
@@ -70,13 +72,7 @@ function sql(
     }
   }
   parts.push(strings[expressions.length])
-  const result = [
-    parts
-      .join('')
-      .trim()
-      .replace(/\s+/g, ' '),
-    { bind },
-  ]
+  const result = [parts.join('').trim().replace(/\s+/g, ' '), { bind }]
   ;(result: any)[sqlOutput] = true
   if (queryGenerator) (result: any)[queryGeneratorSymbol] = queryGenerator
   return result
@@ -126,7 +122,7 @@ const escapeSql = (queryGenerator: () => QueryGenerator) => (
     if (expression instanceof Literal) {
       parts.push((expression: any).val)
     } else if (isValuesArray(expression)) {
-      parts.push((expression: any).map(row => row.value).join(', '))
+      parts.push((expression: any).map((row) => row.value).join(', '))
     } else if (Array.isArray(expression) && (expression: any)[sqlOutput]) {
       const [query, options] = ((expression: any): [string, QueryOptions])
       const { bind } = options
@@ -214,4 +210,39 @@ sql.with = (sequelize: Sequelize) => ({
   },
 })
 
-module.exports = sql
+declare type SqlFunction = {
+  (
+    strings: $ReadOnlyArray<string>,
+    ...expressions: $ReadOnlyArray<mixed>
+  ): [string, QueryOptions],
+  escape(
+    strings: $ReadOnlyArray<string>,
+    ...expressions: $ReadOnlyArray<mixed>
+  ): string,
+  literal(
+    strings: $ReadOnlyArray<string>,
+    ...expressions: $ReadOnlyArray<mixed>
+  ): LiteralInstance,
+  with(
+    sequelize: Sequelize
+  ): {
+    escape(
+      strings: $ReadOnlyArray<string>,
+      ...expressions: $ReadOnlyArray<mixed>
+    ): string,
+    values(
+      strings: $ReadOnlyArray<string>,
+      ...expressions: $ReadOnlyArray<mixed>
+    ): ValuesRow,
+    literal(
+      strings: $ReadOnlyArray<string>,
+      ...expressions: $ReadOnlyArray<mixed>
+    ): LiteralInstance,
+    query(
+      strings: $ReadOnlyArray<string>,
+      ...expressions: $ReadOnlyArray<mixed>
+    ): (options?: QueryOptions) => Promise<any>,
+  },
+}
+
+module.exports = (sql: SqlFunction)
