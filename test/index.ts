@@ -1,13 +1,9 @@
-// @flow
-
 import Sequelize from 'sequelize'
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
-
 import sql from '../src'
-
 describe(`sql`, function () {
-  const sequelize = new Sequelize('test', 'test', 'test', {
+  const sequelize = new Sequelize.Sequelize('test', 'test', 'test', {
     dialect: 'postgres',
   })
 
@@ -58,10 +54,9 @@ WHERE ${User.rawAttributes.birthday} = ${new Date('2346-7-11')} AND
     ])
   })
 })
-
 describe(`sql.escape`, function () {
   it(`works`, function () {
-    const sequelize = new Sequelize('test', 'test', 'test', {
+    const sequelize = new Sequelize.Sequelize('test', 'test', 'test', {
       dialect: 'postgres',
     })
 
@@ -87,7 +82,7 @@ WHERE "name" LIKE 'and%' AND
     )
   })
   it(`can get QueryGenerator from Sequelize Model class`, function () {
-    const sequelize = new Sequelize('test', 'test', 'test', {
+    const sequelize = new Sequelize.Sequelize('test', 'test', 'test', {
       dialect: 'postgres',
     })
 
@@ -103,8 +98,8 @@ WHERE "name" LIKE 'and%' AND
   it(`handles escaped $ in nested templates properly`, function () {
     expect(sql.escape`SELECT ${sql`'$$1'`}`).to.deep.equal(`SELECT '$$1'`)
   })
-  it(`can get QueryGenerator from nested sql template`, async function (): Promise<void> {
-    const sequelize = new Sequelize('test', 'test', 'test', {
+  it(`can get QueryGenerator from nested sql template`, async function (): Promise<undefined> {
+    const sequelize = new Sequelize.Sequelize('test', 'test', 'test', {
       dialect: 'postgres',
     })
 
@@ -118,10 +113,9 @@ WHERE "name" LIKE 'and%' AND
     )
   })
   describe(`.with`, function () {
-    const sequelize = new Sequelize('test', 'test', 'test', {
+    const sequelize = new Sequelize.Sequelize('test', 'test', 'test', {
       dialect: 'postgres',
     })
-
     describe(`.escape`, function () {
       it(`works`, function () {
         expect(
@@ -145,17 +139,19 @@ WHERE "name" LIKE 'and%' AND
     })
     describe(`.query`, function () {
       it(`works`, function () {
-        const calls = []
+        const calls: Array<any> = []
         const _sequelize: any = {
           query: (...args: any): any => {
             calls.push(args)
             return Promise.resolve()
           },
+
           getQueryInterface(): any {
             return sequelize.getQueryInterface()
           },
         }
         expect(
+          // @ts-expect-error - this is a test
           sql.with(_sequelize).query`SELECT LOWER(${'foo'});`({ test: 'bar' })
         ).to.be.an.instanceOf(Promise)
         expect(calls).to.deep.equal([
