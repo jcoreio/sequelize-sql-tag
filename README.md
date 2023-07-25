@@ -15,7 +15,7 @@ refactor-proof in raw queries than embedding raw identifiers.
 # Installation
 
 ```sh
-npm install --save @jcoreio/sequelize-sql-tag
+pnpm install --save @jcoreio/sequelize-sql-tag
 ```
 
 # Compatibility
